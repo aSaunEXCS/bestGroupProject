@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ quiz.title }}</title>
+</head>
+<body>
+    <h1>{{ quiz.title }}</h1>
+    <p>This is the quiz page for {{ quiz.title }}.</p>
+
+    <!-- Add JavaScript to fetch quiz data -->
+    <script>
+        fetch("{% url 'quiz-data' quiz.id %}")  // Fetch quiz JSON data
+        .then(response => response.json())
+        .then(data => console.log(data));  // Log data (later, use it to display questions)
+    </script>
+</body>
+</html>
