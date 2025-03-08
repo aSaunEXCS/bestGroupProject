@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 from quizes.models import Quiz, Question, Result
+from django.db.models import F
 from leaderboard.models import leaderboard
 import json
 
