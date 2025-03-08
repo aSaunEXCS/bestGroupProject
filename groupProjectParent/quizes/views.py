@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 from quizes.models import Quiz, Question, Result
+from leaderboard.models import leaderboard
 import json
 
 def quiz_list(request):
@@ -38,5 +39,7 @@ def submit_quiz(request, quiz_id):
                 score += 1
 
         result = Result.objects.create(user=request.user, quiz=quiz, score=score, time_taken=time_taken)
+        leaderboard.objects.filter(username=request.user).update(points=F('points') + Result.objects.values('score'))
+
         return JsonResponse({'score': score, 'time_taken': time_taken})  # Return time_taken
     return HttpResponse(status=405)
