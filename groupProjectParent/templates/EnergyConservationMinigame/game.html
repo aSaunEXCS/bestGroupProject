@@ -44,40 +44,43 @@
 
     <h2 id="timer">Time Left: <span id="time-value">{{ time_left }}</span> seconds</h2>
 
-    {% load static %}
-
     <div class="device-container">
         {% for device, status in game.devices.items %}
         <div class="device">
-            <form action="{% url 'toggle_device' device %}" method="post">
+            <form action="{% url 'toggle_device' device %}" method="post" class="device-form">
                 {% csrf_token %}
-
+                <input type="hidden" name="device" value="{{ device }}"> 
                 {% with device_img='EnergyConservationMinigame/'|add:device|lower|add:'_on.png' %}
                 {% if status %}
-                <img src="{% static device_img %}" alt="{{ device }}">
+                <img src="{% static device_img %}" alt="{{ device }}" class="device-img" data-device="{{ device }}">
                 {% else %}
-                <img src="{% static device_img|cut:'_on.png'|add:'_off.png' %}" alt="{{ device }}">
+                <img src="{% static device_img|cut:'_on.png'|add:'_off.png' %}" alt="{{ device }}" class="device-img" data-device="{{ device }}">
                 {% endif %}
                 {% endwith %}
-
-                <br>
-                <button type="submit">{{ device }}</button>
             </form>
         </div>
         {% endfor %}
     </div>
 
     <script>
-        let timeLeft = parseFloat("{{ time_left }}");  // Ensure floating point precision
+        document.querySelectorAll('.device-img').forEach(img => {
+            img.addEventListener('click', function () {
+                this.closest('form').submit();
+            });
+        });
+    </script>
+
+    <script>
+        let timeLeft = parseFloat("{{ time_left }}");
 
         function updateTimer() {
             if (timeLeft <= 0) {
-                window.location.href = "{% url 'game_over' %}";  // Redirect when time runs out
+                window.location.href = "{% url 'game_over' %}";
                 return;
             }
             document.getElementById("timer").innerText = "Time Left: " + timeLeft.toFixed(3) + " seconds";
-            timeLeft -= 0.01;  // Decrease by 10ms per update
-            setTimeout(updateTimer, 10);  // Update every 10ms
+            timeLeft -= 0.01;
+            setTimeout(updateTimer, 10);
         }
 
         updateTimer();
