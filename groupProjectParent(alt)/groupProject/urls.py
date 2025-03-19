@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('login.urls')),
     path('', include('homepage.urls')),
     path('', include('quizes.urls')),
+    path('EnergyConservationMinigame/', include('EnergyConservationMinigame.urls')),
 ]
