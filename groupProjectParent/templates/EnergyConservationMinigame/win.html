@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Over</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎉 Congratulations! 🎉</h1>
+    <p>You turned off all devices!</p>
+    <h2>Your Score: {{ score }}</h2>
+    <p>Time Taken: {{ time_taken }} seconds</p>
+    <form action="{% url 'reset_game' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Play Again</button>
+    </form>
+</body>
+</html>
