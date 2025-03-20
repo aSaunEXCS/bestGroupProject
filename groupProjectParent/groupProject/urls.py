@@ -25,5 +25,6 @@ urlpatterns = [
     path('', include('homepage.urls')),
     path('', include('leaderboard.urls')),
     path('', include('quizes.urls')),
+    path('profile/', include('UserProfile.urls')),
     path('EnergyConservationMinigame/', include('EnergyConservationMinigame.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
