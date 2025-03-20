@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'leaderboard',
     'EnergyConservationMinigame',
     'quizes',
+    'UserProfile.apps.UserprofileConfig',
 ]
 
 MIDDLEWARE = [
