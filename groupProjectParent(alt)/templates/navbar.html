@@ -1,0 +1,12 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'homepage/styles2.css' %}">
+<div class = "navbar">
+    {% url 'home' as home_url %}
+    <span>{% if request.path == home_url %}Home{% else %}<a href="{{ home_url }}">Home</a>{% endif %}</span>
+    {% url 'leaderboard' as leaderboard_url %}
+    <span>{% if request.path == leaderboard_url %}Leaderboards{% else %}<a href="{{ leaderboard_url }}">Leaderboards</a>{% endif %}</span>
+    {% url 'about' as about_url %}
+    <span>{% if request.path == about_url %}About{% else %}<a href="{{ about_url }}">About</a>{% endif %}</span>
+    {% url 'user-logout' as logout_url %}
+    <span><a href="{{ logout_url }}"> Logout here </a></span>
+</div>

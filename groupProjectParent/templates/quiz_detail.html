@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <title>{{ quiz.title }}</title>
+</head>
+<body>
+    <h1>{{ quiz.title }}</h1>
+    <p>This is the quiz page for {{ quiz.title }}.</p>
+
+    <h2>Questions:</h2>
+    {% if quiz.question_set.all %}
+        <form id="quiz-form">
+            {% for question in quiz.question_set.all %}
+                <div>
+                    <p><strong>{{ question.text }}</strong></p>
+                    {% for answer in question.answer_set.all %}
+                        <label>
+                            <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}">
+                            {{ answer.text }}
+                        </label><br>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button type="submit">Submit Quiz</button>
+        </form>
+        <p>Time: <span id="timer">0</span> seconds</p>
+
+
+        <p id="result"></p>
+    {% else %}
+        <p>No questions available for this quiz.</p>
+    {% endif %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let startTime = Date.now();  // Capture the current time when the page is loaded
+            let timerElement = document.getElementById("timer");
+
+    // Function to update the timer every second
+            setInterval(function() {
+                let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                timerElement.innerText = elapsedTime;
+            }, 1000);
+
+            document.getElementById("quiz-form").onsubmit = async function(event) {
+                event.preventDefault();
+
+                let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                let answers = {};
+                document.querySelectorAll("input[type='radio']:checked").forEach(input => {
+                    answers[input.name.replace("question_", "")] = input.value;
+                });
+
+                const response = await fetch("{% url 'quiz-submit' quiz.id %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({ answers: answers, time_taken: elapsedTime })
+                });
+
+                const result = await response.json();
+                document.getElementById("result").innerText =
+                    `Score: ${result.score} / {{ quiz.question_set.count }}, Time Taken: ${result.time_taken} seconds`;
+            };
+        });
+
+    </script>
+</body>
+</html>
