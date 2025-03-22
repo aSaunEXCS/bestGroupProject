@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Saver Challenge</title>
+    {% load static %}
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: url('{% static "EnergyConservationMinigame/dorm_room.jpg" %}') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .device-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .device {
+            margin: 10px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+            .device img {
+                width: 100px;
+                height: 100px;
+            }
+
+        #timer {
+            font-size: 20px;
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Energy Saver Challenge</h1>
+    <p>Turn off all devices before time runs out!</p>
+
+    <h2 id="timer">Time Left: <span id="time-value">{{ time_left }}</span> seconds</h2>
+
+    <div class="device-container">
+        {% for device, status in game.devices.items %}
+        <div class="device">
+            <form action="{% url 'toggle_device' device %}" method="post" class="device-form">
+                {% csrf_token %}
+                <input type="hidden" name="device" value="{{ device }}"> 
+                {% with device_img='EnergyConservationMinigame/'|add:device|lower|add:'_on.png' %}
+                {% if status %}
+                <img src="{% static device_img %}" alt="{{ device }}" class="device-img" data-device="{{ device }}">
+                {% else %}
+                <img src="{% static device_img|cut:'_on.png'|add:'_off.png' %}" alt="{{ device }}" class="device-img" data-device="{{ device }}">
+                {% endif %}
+                {% endwith %}
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.querySelectorAll('.device-img').forEach(img => {
+            img.addEventListener('click', function () {
+                this.closest('form').submit();
+            });
+        });
+    </script>
+
+    <script>
+        let timeLeft = parseFloat("{{ time_left }}");
+
+        function updateTimer() {
+            if (timeLeft <= 0) {
+                window.location.href = "{% url 'game_over' %}";
+                return;
+            }
+            document.getElementById("timer").innerText = "Time Left: " + timeLeft.toFixed(3) + " seconds";
+            timeLeft -= 0.01;
+            setTimeout(updateTimer, 10);
+        }
+
+        updateTimer();
+    </script>
+</body>
+</html>

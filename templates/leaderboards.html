@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+
+<h1>Leaderboard</h1>
+<ol>
+{% for item in all %}
+    <li><p>{{item}}</p></li>
+{% endfor %}
+</ol>
+{% endblock %}

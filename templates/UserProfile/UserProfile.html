@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<h1>{{ profile.display_name|default:profile.user.username }}'s Profile</h1>
+
+<div>
+    <img src="{{ profile.profile_image.url }}" alt="Profile Image" width="150">
+</div>
+
+<h2>Badges:</h2>
+<div class="badges">
+    {% for badge in profile.badges.all %}
+    <div class="badge">
+        <img src="{{ badge.image.url }}" alt="{{ badge.name }}" width="100">
+        <p>{{ badge.name }}</p>
+    </div>
+    {% empty %}
+    <p>No badges yet.</p>
+    {% endfor %}
+</div>
+
+<h2>Leaderboard</h2>
+<p>
+    <a href="{% url 'leaderboards' %}">
+        View Leaderboards (Your results included)
+    </a>
+</p>
+
+<h2>Edit Profile</h2>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Changes</button>
+</form>
+{% endblock %}

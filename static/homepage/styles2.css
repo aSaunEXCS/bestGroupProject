@@ -1,0 +1,38 @@
+.navbar {
+    background-color: #0000ff;
+    overflow: hidden;
+    height: 60px; 
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+    padding: 0 20px;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 10px; 
+}
+
+    .navbar-links a {
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+    }
+
+        .navbar-links a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+.navbar-profile {
+}
+
+.profile-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+}
