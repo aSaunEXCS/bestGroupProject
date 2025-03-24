@@ -8,7 +8,6 @@ def update_badges():
             name="Best Overall",
             defaults={'description': "Highest overall score across all minigames"}
         )
-        print("Badge:", badge_overall, type(badge_overall))
         for profile in Profile.objects.all():
             if profile.user == best_overall.user:
                 profile.badges.add(badge_overall)
