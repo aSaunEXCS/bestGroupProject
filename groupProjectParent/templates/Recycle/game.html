@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Sorting Game</title>
+    <style>
+        .game-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .waste-image {
+            width: 80vw;
+            max-width: 400px;
+            height: auto;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+        }
+
+        .choice-buttons {
+            margin-top: 20px;
+        }
+
+            .choice-buttons button {
+                padding: 10px 20px;
+                font-size: 1rem;
+                margin: 0 10px;
+            }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Waste Sorting Game</h1>
+        <p>Score: {{ score }}</p>
+        {% if image %}
+        <img src="{% static 'Recycle/'|add:image %}" alt="Waste" class="waste-image">
+        <form method="post">
+            {% csrf_token %}
+            <div class="choice-buttons">
+                <button type="submit" name="answer" value="recyclable">Recyclable</button>
+                <button type="submit" name="answer" value="non-recyclable">Non-Recyclable</button>
+            </div>
+        </form>
+        {% else %}
+        <p>No image to display.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
