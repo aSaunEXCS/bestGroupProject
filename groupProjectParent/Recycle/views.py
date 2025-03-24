@@ -1,51 +1,66 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from .models import leaderboard
-from django.db.models import F
+from django.utils import timezone
+from leaderboard.models import LeaderboardEntry
 
-# Create your views here.
-def pictures1(request):
-  return render(request, "pictures.html", {})
+WASTE_IMAGES = [
+    "waste1.jpg", "waste2.jpg", "waste3.jpg", "waste4.jpg", "waste5.jpg",
+    "waste6.jpg", "waste7.jpg", "waste8.jpg", "waste9.jpg", "waste10.jpg"
+]
+
+CORRECT_ANSWERS = {
+    "waste1.jpg": "non-recyclable",
+    "waste2.jpg": "non-recyclable",
+    "waste3.jpg": "recyclable",
+    "waste4.jpg": "recyclable",
+    "waste5.jpg": "recyclable",
+    "waste6.jpg": "non-recyclable",
+    "waste7.jpg": "recyclable",
+    "waste8.jpg": "recyclable",
+    "waste9.jpg": "recyclable",
+    "waste10.jpg": "non-recyclable",
+}
 
 @login_required
-def add5(request):
-  leaderboard.objects.filter(username=request.user).update(points=F('points') + 5)
-  return render(request, "correct.html", {})
+def waste_game(request):
+    if "waste_index" not in request.session:
+        request.session["waste_index"] = 0
+        request.session["waste_score"] = 0
 
+    if request.method == "POST":
+        index = request.session.get("waste_index", 0)
+        score = request.session.get("waste_score", 0)
+        user_answer = request.POST.get("answer", "").lower().strip()
+        current_image = WASTE_IMAGES[index]
+        correct = CORRECT_ANSWERS.get(current_image)
 
-def leaderboards(request):
-  all_members = leaderboard.objects.all().order_by('-points')
-  return render(request, "leaderboards.html", {'all': all_members})
+        if user_answer == correct:
+            score += 100
 
+        index += 1
+        request.session["waste_index"] = index
+        request.session["waste_score"] = score
 
-@login_required
-def wrong(request):
-  return render(request, "incorrect.html", {})
+        if index >= len(WASTE_IMAGES):
+            final_score = score
+            entry, created = LeaderboardEntry.objects.get_or_create(
+                user=request.user,
+                game="Recycling",
+                defaults={'score': final_score, 'date': timezone.now()}
+            )
+            if not created and final_score > entry.score:
+                entry.score = final_score
+                entry.date = timezone.now()
+                entry.save()
+            for key in ["waste_index", "waste_score"]:
+                if key in request.session:
+                    del request.session[key]
+            return render(request, "Recycle/win.html", {"score": final_score})
+    
+    index = request.session.get("waste_index", 0)
+    if index < len(WASTE_IMAGES):
+        current_image = WASTE_IMAGES[index]
+    else:
+        current_image = None
 
-def next_image(request):
-  return render(request, "pictures2.html", {})
-
-def pictures3(request):
-  return render(request, "pictures3.html", {})
-
-def pictures4(request):
-  return render(request, "pictures4.html", {})
-
-
-def pictures5(request):
-  return render(request, "pictures5.html", {})
-
-def pictures6(request):
-  return render(request, "pictures6.html", {})
-
-def pictures7(request):
-  return render(request, "pictures7.html", {})
-
-def pictures8(request):
-  return render(request, "pictures8.html", {})
-
-def pictures9(request):
-  return render(request, "pictures9.html", {})
-
-def pictures10(request):
-  return render(request, "pictures10.html", {})
+    return render(request, "Recycle/game.html", {"image": current_image, "score": request.session.get("waste_score", 0)})
