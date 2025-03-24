@@ -2,9 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import ProfileForm
 from .models import Profile
+from leaderboard.utils import update_badges
 
 @login_required
 def profile_view(request):
+    update_badges()
     profile, created = Profile.objects.get_or_create(user=request.user)
     if request.method == "POST":
         form = ProfileForm(request.POST, request.FILES, instance=profile)
