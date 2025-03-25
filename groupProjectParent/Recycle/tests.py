@@ -1,66 +1,63 @@
-from django.test import TestCase
-
-# Create your tests here.
 from django.test import TestCase, Client
-from django.urls import reverse
 from django.contrib.auth.models import User
-from .models import Quiz, Question, Answer, Result
+from django.urls import reverse
 from leaderboard.models import LeaderboardEntry
-import json
 
-class QuizViewsTest(TestCase):
+class WasteGameViewTest(TestCase):
     def setUp(self):
-        # Create user
+        # Set up a user and client for testing
         self.user = User.objects.create_user(username='testuser', password='password')
         self.client = Client()
+        self.url = reverse('waste_game')
+
+    def test_redirect_if_not_logged_in(self):
+        # Ensure the view redirects unauthenticated users
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+
+    def test_game_initial_load(self):
+        # Test initial game state for logged-in user
         self.client.login(username='testuser', password='password')
-
-        # Create a quiz with questions and answers
-        self.quiz = Quiz.objects.create(title='Sample Quiz')
-        self.question1 = Question.objects.create(quiz=self.quiz, text='What is 2+2?')
-        self.answer1 = Answer.objects.create(question=self.question1, text='4', correct=True)
-        self.answer2 = Answer.objects.create(question=self.question1, text='3', correct=False)
-
-    def test_quiz_list_view(self):
-        response = self.client.get(reverse('quiz_list'))
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Sample Quiz')
+        self.assertIn('image', response.context)
+        self.assertEqual(response.context['score'], 0)
 
-    def test_quiz_data_view(self):
-        response = self.client.get(reverse('quiz_data', args=[self.quiz.id]))
+    def test_correct_answer_increases_score(self):
+        # Test that a correct answer increases the score
+        self.client.login(username='testuser', password='password')
+        self.client.get(self.url)  # Start the game
+        response = self.client.post(self.url, {'answer': 'non-recyclable'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['quiz'], 'Sample Quiz')
-        self.assertEqual(len(response.json()['questions']), 1)
+        self.assertEqual(self.client.session['waste_score'], 100)
 
-    def test_quiz_detail_view(self):
-        response = self.client.get(reverse('quiz_detail', args=[self.quiz.id]))
+    def test_wrong_answer_does_not_increase_score(self):
+        # Test that a wrong answer doesn't change the score
+        self.client.login(username='testuser', password='password')
+        self.client.get(self.url)  # Start the game
+        response = self.client.post(self.url, {'answer': 'recyclable'})
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Sample Quiz')
+        self.assertEqual(self.client.session['waste_score'], 0)
 
-    def test_submit_quiz_correct_answer(self):
-        response = self.client.post(
-            reverse('submit_quiz', args=[self.quiz.id]),
-            data=json.dumps({'answers': {str(self.question1.id): '4'}, 'time_taken': 30}),
-            content_type='application/json'
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['score'], 1)
-        self.assertEqual(response.json()['time_taken'], 30)
-        result = Result.objects.get(user=self.user, quiz=self.quiz)
-        self.assertEqual(result.score, 1)
+    def test_game_completion_and_leaderboard_entry(self):
+        # Simulate a full game and check leaderboard entry
+        self.client.login(username='testuser', password='password')
+        for _ in range(10):
+            current_image = self.client.session['waste_index']
+            answer = 'recyclable' if current_image in [2, 3, 4, 6, 7, 8] else 'non-recyclable'
+            self.client.post(self.url, {'answer': answer})
 
-    def test_submit_quiz_wrong_answer(self):
-        response = self.client.post(
-            reverse('submit_quiz', args=[self.quiz.id]),
-            data=json.dumps({'answers': {str(self.question1.id): '3'}, 'time_taken': 20}),
-            content_type='application/json'
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['score'], 0)
-        result = Result.objects.get(user=self.user, quiz=self.quiz)
-        self.assertEqual(result.score, 0)
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, 'Recycle/win.html')
+        self.assertTrue(LeaderboardEntry.objects.filter(user=self.user, game="Recycling").exists())
 
-    def test_submit_quiz_invalid_method(self):
-        response = self.client.get(reverse('submit_quiz', args=[self.quiz.id]))
-        self.assertEqual(response.status_code, 405)
+    def test_session_resets_after_game(self):
+        # Ensure session resets after game completion
+        self.client.login(username='testuser', password='password')
+        for _ in range(10):
+            answer = 'recyclable'  # Assuming repetitive answers for simplicity
+            self.client.post(self.url, {'answer': answer})
 
+        self.assertNotIn('waste_index', self.client.session)
+        self.assertNotIn('waste_score', self.client.session)
